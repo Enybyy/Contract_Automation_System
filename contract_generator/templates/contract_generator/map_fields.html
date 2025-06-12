@@ -1,0 +1,42 @@
+{% extends "contract_generator/base.html" %}
+
+{% block title %}Mapeo de Campos{% endblock %}
+
+{% block content %}
+<h3>Mapeando Campos para: {{ project.name }}</h3>
+<p>Conecta los campos detectados en tu plantilla Word con las columnas de tu base de datos Excel.</p>
+<hr>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-8">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Campo en Plantilla (Word)</th>
+                        <th scope="col">Columna de Datos (Excel)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for placeholder in placeholders %}
+                    <tr>
+                        <td><code>{{ placeholder }}</code></td>
+                        <td>
+                            <select name="{{ placeholder }}" class="form-select">
+                                <option value="">-- Ignorar este campo --</option>
+                                {% for header in headers %}
+                                    <option value="{{ header }}">{{ header }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-success">Guardar Mapeo</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </div>
+</form>
+{% endblock %}
