@@ -1,0 +1,70 @@
+<!-- generator/templates/generator/gestion_plantillas.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Plantillas</title>
+    <!-- Un poco de estilo para que no se vea tan simple -->
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .container { max-width: 800px; margin: auto; }
+        .form-container, .list-container { border: 1px solid #ccc; padding: 1.5em; margin-bottom: 2em; border-radius: 8px; }
+        input, button { width: 100%; padding: 0.5em; margin-bottom: 1em; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Plantillas de Contrato</h1>
+
+        <!-- Formulario para subir una nueva plantilla -->
+        <div class="form-container">
+            <h2>Subir Nueva Plantilla (.docx)</h2>
+            <!-- El formulario debe ser POST y tener enctype para subir archivos -->
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %} <!-- Medida de seguridad de Django, ¡siempre incluirla! -->
+                
+                <label for="nombre_plantilla">Nombre descriptivo:</label>
+                <input type="text" id="nombre_plantilla" name="nombre_plantilla" required>
+
+                <label for="archivo_plantilla">Archivo (.docx):</label>
+                <input type="file" id="archivo_plantilla" name="archivo_plantilla" accept=".docx" required>
+
+                <button type="submit">Subir Plantilla</button>
+            </form>
+        </div>
+
+        <!-- Lista de plantillas ya subidas -->
+        <div class="list-container">
+            <h2>Mis Plantillas</h2>
+            {% if plantillas %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Placeholders Detectados</th>
+                            <th>Archivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plantilla in plantillas %}
+                            <tr>
+                                <td>{{ plantilla.nombre }}</td>
+                                <td>{{ plantilla.placeholders|join:", " }}</td>
+                                <td><a href="{{ plantilla.archivo.url }}" download>Descargar</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Aún no has subido ninguna plantilla.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
