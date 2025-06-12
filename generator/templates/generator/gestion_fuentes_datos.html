@@ -1,0 +1,86 @@
+<!-- generator/templates/generator/gestion_fuentes_datos.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Fuentes de Datos</title>
+    <!-- Los estilos se mantienen igual -->
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .container { max-width: 800px; margin: auto; }
+        .form-container, .list-container { border: 1px solid #ccc; padding: 1.5em; margin-bottom: 2em; border-radius: 8px; }
+        input, button { width: 100%; padding: 0.5em; margin-bottom: 1em; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        /* Estilo para la navegación */
+        nav { background-color: #f8f9fa; padding: 1em; margin-bottom: 2em; text-align: center; }
+        nav a { margin: 0 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Barra de navegación para ir de una página a otra -->
+        <nav>
+            <a href="{% url 'generator:gestion_plantillas' %}">Gestión de Plantillas (Word)</a>
+            <a href="{% url 'generator:gestion_fuentes_datos' %}">Gestión de Fuentes de Datos (Excel)</a>
+        </nav>
+
+        <h1>Gestión de Fuentes de Datos</h1>
+
+        {% if error %}
+            <div style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 1em; margin-bottom: 1em; border-radius: 8px;">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="form-container">
+            <h2>Subir Nueva Fuente de Datos (.xlsx)</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <label for="nombre_fuente">Nombre descriptivo:</label>
+                <input type="text" id="nombre_fuente" name="nombre_fuente" required>
+
+                <label for="archivo_fuente">Archivo (.xlsx):</label>
+                <!-- Actualizamos el 'accept' para sugerir archivos Excel -->
+                <input type="file" id="archivo_fuente" name="archivo_fuente" accept=".xlsx" required>
+
+                <button type="submit">Subir Fuente de Datos</button>
+            </form>
+        </div>
+
+        <div class="list-container">
+            <h2>Mis Fuentes de Datos</h2>
+            <!-- Cambiamos la variable 'plantillas' por 'fuentes_datos' -->
+            {% if fuentes_datos %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Columnas Detectadas</th>
+                            <th>Archivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Iteramos sobre 'fuentes_datos' -->
+                        {% for fuente in fuentes_datos %}
+                            <tr>
+                                <td>{{ fuente.nombre }}</td>
+                                <!-- Mostramos el campo 'columnas' -->
+                                <td>{{ fuente.columnas|join:", " }}</td>
+                                <td><a href="{{ fuente.archivo.url }}" download>Descargar</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Aún no has subido ninguna fuente de datos.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

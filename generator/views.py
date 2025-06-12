@@ -1,11 +1,14 @@
 # generator/views.py
 
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from .models import PlantillaContrato
+from .models import FuenteDeDatos
+import pandas as pd
 import docx
 import re
-import os # <-- ¡AQUÍ ESTÁ LA LÍNEA QUE FALTABA!
+import os
+
 
 def extraer_placeholders(ruta_archivo_docx):
     """
@@ -81,3 +84,64 @@ def gestion_plantillas(request):
         return redirect('generator:gestion_plantillas')
 
     return render(request, 'generator/gestion_plantillas.html', context)
+
+
+def extraer_columnas_excel(ruta_archivo_excel):
+    """
+    Analiza un archivo Excel y extrae los nombres de las columnas de la primera fila.
+    """
+    try:
+        # Leemos solo la primera fila (nrows=0) para obtener los encabezados.
+        # Esto es muy eficiente, no carga el archivo entero en memoria.
+        df = pd.read_excel(ruta_archivo_excel, nrows=0)
+        return df.columns.tolist()
+    except Exception as e:
+        # Si pandas no puede leerlo (corrupto, formato incorrecto, etc.)
+        print(f"Error crítico al analizar el archivo Excel: {e}")
+        return None # Devolvemos None para indicar un fallo
+
+@login_required
+def gestion_fuentes_datos(request):
+    context = {
+        'fuentes_datos': FuenteDeDatos.objects.filter(propietario=request.user),
+        'error': None
+    }
+
+    if request.method == 'POST':
+        nombre_fuente = request.POST.get('nombre_fuente')
+        archivo_fuente = request.FILES.get('archivo_fuente')
+
+        # 1. Validar que los campos están presentes
+        if not nombre_fuente or not archivo_fuente:
+            context['error'] = "Error: Debes proporcionar un nombre y seleccionar un archivo."
+            return render(request, 'generator/gestion_fuentes_datos.html', context)
+
+        # 2. Validar la extensión del archivo
+        _ , extension = os.path.splitext(archivo_fuente.name)
+        if extension.lower() != '.xlsx':
+            context['error'] = "Formato de archivo no válido. Solo se aceptan archivos Excel (.xlsx)."
+            return render(request, 'generator/gestion_fuentes_datos.html', context)
+
+        # Si la validación es correcta, procedemos
+        nueva_fuente = FuenteDeDatos(
+            propietario=request.user,
+            nombre=nombre_fuente,
+            archivo=archivo_fuente
+        )
+        nueva_fuente.save()
+
+        # Intentamos extraer las columnas
+        columnas_extraidas = extraer_columnas_excel(nueva_fuente.archivo.path)
+        
+        if columnas_extraidas is None:
+            context['error'] = "Error: El archivo .xlsx parece estar corrupto o no es un formato válido."
+            nueva_fuente.delete()
+            return render(request, 'generator/gestion_fuentes_datos.html', context)
+
+        nueva_fuente.columnas = columnas_extraidas
+        nueva_fuente.save()
+        
+        return redirect('generator:gestion_fuentes_datos')
+
+    return render(request, 'generator/gestion_fuentes_datos.html', context)
+
