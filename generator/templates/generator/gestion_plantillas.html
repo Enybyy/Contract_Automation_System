@@ -22,6 +22,12 @@
     <div class="container">
         <h1>Gestión de Plantillas de Contrato</h1>
 
+        {% if error %}
+            <div style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 1em; margin-bottom: 1em; border-radius: 8px;">
+                {{ error }}
+            </div>
+        {% endif %}
+
         <!-- Formulario para subir una nueva plantilla -->
         <div class="form-container">
             <h2>Subir Nueva Plantilla (.docx)</h2>
